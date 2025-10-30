@@ -1,0 +1,13 @@
+package com.parkease.parkease_api;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class ParkeaseApiApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ParkeaseApiApplication.class, args);
+	}
+
+}

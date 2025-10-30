@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  /* Replaced dark theme with a light one */
+  background-color: #f9fafb; /* Light gray background */
+  color: #111827; /* Dark text */
+  font-family: 'Poppins', sans-serif;
+}
+
