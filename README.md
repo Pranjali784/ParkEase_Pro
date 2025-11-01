@@ -3,7 +3,7 @@
 A real-time, location-aware parking sharing platform built with a modern full-stack architecture using Spring Boot and React.
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Java-17-blue.svg?logo=java&logoColor=white" alt="Java 17">
+  <img src="https://img.shields.io/badge/Java-21-blue.svg?logo=java&logoColor=white" alt="Java 21">
   <img src="https://img.shields.io/badge/Spring_Boot-3.x-brightgreen.svg?logo=spring&logoColor=white" alt="Spring Boot 3.x">
   <img src="https://img.shields.io/badge/Spring_Security-6.x-blueviolet.svg?logo=springsecurity&logoColor=white" alt="Spring Security 6.x">
   <img src="https://img.shields.io/badge/React-18-blue.svg?logo=react&logoColor=white" alt="React 18">
@@ -179,4 +179,5 @@ Java Developer | Full-Stack Enthusiast
 ---
 
 🐳 This project demonstrates a modern full-stack solution to urban parking challenges using Spring Boot, React, MySQL, and Docker.
+
 
