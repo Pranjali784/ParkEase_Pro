@@ -35,7 +35,7 @@ cd ParkEase_Pro
 cp .env.example .env
 
 # 3. Update secrets in the .env file
-# (e.g., GOOGLE_CLIENT_ID, RADAR_SECRET_KEY, MYSQL_PASSWORD)
+(e.g., GOOGLE_CLIENT_ID, RADAR_SECRET_KEY, MYSQL_PASSWORD)
 
 # 4. Build and start all services
 docker-compose up --build
@@ -153,4 +153,5 @@ This project is licensed under the MIT License — feel free to modify and exten
 🏁 Summary
 
 ParkEase showcases a modern full-stack approach to solving real-world urban parking challenges using Spring Boot, React, MySQL, and Docker.
+
 Its modular structure, secure authentication flow, and real-time map features make it a strong example of scalable full-stack system design.
