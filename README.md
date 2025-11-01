@@ -21,7 +21,7 @@ ParkEase is a full-stack web application that enables users to find and share pr
 - [⚙️ Tech Stack](#️-tech-stack)
 - [🧠 Core Features](#-core-features)
 - [☁️ Future Enhancements](#️-future-enhancements)
-- [🧑‍💼 Author](#️-author)
+- [👩‍💼 Author](#️-author)
 
 ## 🏗️ System Architecture
 
@@ -164,7 +164,7 @@ Frontend will run at http://localhost:5190
 - [ ] Deploy to AWS / Azure Cloud
 - [ ] Add real-time notifications for booking status
 
-## 🧑‍💼 Author
+## 👩‍💼 Author
 
 **Pranjali Srivastava**  
 Java Developer | Full-Stack Enthusiast  
@@ -179,3 +179,4 @@ Java Developer | Full-Stack Enthusiast
 ---
 
 🐳 This project demonstrates a modern full-stack solution to urban parking challenges using Spring Boot, React, MySQL, and Docker.
+
