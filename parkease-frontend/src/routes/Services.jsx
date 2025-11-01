@@ -30,17 +30,16 @@ export default function Services() {
     }
     Radar.initialize(VITE_RADAR_KEY);
 
-    // Initialize Map
     if (mapRef.current && !mapInstance.current) {
       mapInstance.current = Radar.ui.map({
         container: mapRef.current,
-        style: "radar-light-v1",
+        // --- FIX #1: Changed to DARK map style ---
+        style: "radar-dark-v1",
         center: [80.27, 13.08],
         zoom: 10,
       });
     }
 
-    // Initialize Autocomplete
     if (autocompleteRef.current) {
       Radar.ui.autocomplete({
         container: autocompleteRef.current,
@@ -97,9 +96,6 @@ export default function Services() {
         return;
       }
 
-      // --- MODIFIED JITTER LOGIC ---
-      // Increased jitter from 0.0001 to 0.0008 (about ~90 meters)
-      // This will make markers spread out more.
       const jitterAmount = 0.0008;
       const coordinateMap = new Map();
 
@@ -118,7 +114,6 @@ export default function Services() {
 
         const coordKey = `${originalLat},${originalLon}`;
         if (coordinateMap.has(coordKey)) {
-          // Apply a random jitter
           finalLat = originalLat + (Math.random() - 0.5) * jitterAmount;
           finalLon = originalLon + (Math.random() - 0.5) * jitterAmount;
         }
@@ -142,7 +137,6 @@ export default function Services() {
 
         markersRef.current.push(marker);
       }
-      // -------------------------
 
       mapInstance.current.flyTo({
         center: [data.center.longitude, data.center.latitude],
@@ -158,12 +152,12 @@ export default function Services() {
   };
 
   return (
-    <div className="flex-grow w-full max-w-5xl mx-auto px-5 py-8">
+    // --- FIX #2: Added flex-grow and flex container to fill space ---
+    <div className="flex-grow flex flex-col w-full max-w-5xl mx-auto px-5 py-8">
       <h1 className="text-3xl font-bold mb-6 text-center text-black">Find Parking</h1>
 
       <form onSubmit={handleSearch} className="flex gap-2 mb-4">
         <div ref={autocompleteRef} className="flex-grow" />
-
         <button
           type="submit"
           disabled={loading}
@@ -179,14 +173,14 @@ export default function Services() {
         </div>
       )}
 
+      {/* --- FIX #2: Added flex-grow to make map fill space --- */}
       <div
         ref={mapRef}
+        className="flex-grow" // This makes the map fill the remaining vertical space
         style={{
           width: "100%",
-          height: "600px",
           borderRadius: "12px",
           overflow: "hidden",
-          backgroundColor: "#e5e5e5",
         }}
       />
     </div>

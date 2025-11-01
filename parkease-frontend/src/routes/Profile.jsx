@@ -53,7 +53,7 @@ export default function Profile() {
   }
 
   return (
-      <div className="max-w-4xl mx-auto py-12 px-5">
+      <div className="flex-grow max-w-4xl mx-auto py-12 px-5">
         {/* ... (h1, user info div are unchanged) ... */}
 
         <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">

@@ -32,10 +32,12 @@ public class AuthController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    // This is the one, correct method for Google login
     @PostMapping("/google")
     public ResponseEntity<JwtAuthResponse> loginWithGoogle(@RequestBody Map<String, String> payload) {
-        String googleAccessToken = payload.get("accessToken");
-        String appToken = authService.loginWithGoogle(googleAccessToken);
+        // It expects a JSON body like {"idToken": "..."}
+        String idToken = payload.get("idToken");
+        String appToken = authService.loginWithGoogle(idToken);
         return ResponseEntity.ok(new JwtAuthResponse(appToken));
     }
 }

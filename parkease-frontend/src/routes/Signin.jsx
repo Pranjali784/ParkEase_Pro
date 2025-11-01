@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { GoogleLogin } from "@react-oauth/google";
-
-// AppleIcon component is removed as it's no longer needed
+import { GoogleLogin } from "@react-oauth/google"; // <-- This is correct
 
 const VITE_API_BASE = import.meta.env.VITE_API_BASE;
 
@@ -37,26 +35,28 @@ export default function Signin() {
       }
 
       const data = await res.json();
-      login(data.accessToken); // Save the token
-      navigate(from, { replace: true }); // Redirect
+      login(data.accessToken);
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err.message);
       setLoading(false);
     }
   };
 
-  // Handler for Google Login
+  // --- MODIFIED GOOGLE HANDLER ---
   const handleGoogleLoginSuccess = async (credentialResponse) => {
     setLoading(true);
     setError(null);
 
-    const googleAccessToken = credentialResponse.access_token;
+    // Send the ID Token (credential) to the backend
+    const googleIdToken = credentialResponse.credential;
 
     try {
       const res = await fetch(`${VITE_API_BASE}/auth/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accessToken: googleAccessToken }),
+        // Send the ID token, not an access token
+        body: JSON.stringify({ idToken: googleIdToken }),
       });
 
       if (!res.ok) {
@@ -66,8 +66,10 @@ export default function Signin() {
       const data = await res.json();
       login(data.accessToken);
       navigate(from, { replace: true });
+
     } catch (err) {
       setError(err.message);
+    } finally {
       setLoading(false);
     }
   };
@@ -87,7 +89,6 @@ export default function Signin() {
         <div className="relative bg-white text-black p-8 rounded-xl shadow-2xl">
           <h2 className="text-3xl font-bold text-center mb-6">Sign In</h2>
 
-          {/* --- MANUAL LOGIN FORM --- */}
           <form className="space-y-5" onSubmit={handleLogin}>
             {error && (
               <div className="p-3 bg-red-100 text-red-700 border border-red-300 rounded-md">
@@ -150,7 +151,6 @@ export default function Signin() {
               {loading ? "Signing In..." : "Sign In"}
             </button>
           </form>
-          {/* --- END MANUAL FORM --- */}
 
           <div className="mt-6">
             <div className="relative">
@@ -162,18 +162,15 @@ export default function Signin() {
               </div>
             </div>
 
-            {/* --- MODIFIED GOOGLE BUTTON (Apple removed) --- */}
             <div className="mt-6">
               <div className="flex justify-center">
                 <GoogleLogin
                   onSuccess={handleGoogleLoginSuccess}
                   onError={handleGoogleLoginError}
                   useOneTap={false}
-                  flow="implicit"
-                  width="200px"
+                  // --- REMOVED flow="implicit" ---
                 />
               </div>
-              {/* Apple Button Removed */}
             </div>
 
             <p className="mt-6 text-center text-sm text-gray-600">

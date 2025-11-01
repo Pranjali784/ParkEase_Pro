@@ -1,10 +1,15 @@
 package com.parkease.parkease_api.service;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import com.parkease.parkease_api.dto.LoginDto;
 import com.parkease.parkease_api.dto.RegisterDto;
 import com.parkease.parkease_api.model.User;
 import com.parkease.parkease_api.repositories.UserRepository;
 import com.parkease.parkease_api.security.JwtTokenProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -12,12 +17,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpEntity;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Collections;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -27,18 +30,23 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
-    private final RestTemplate restTemplate;
+    private final GoogleIdTokenVerifier verifier;
 
+    // Inject the Google Client ID from .env
     public AuthService(AuthenticationManager authenticationManager,
                        UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        JwtTokenProvider jwtTokenProvider,
-                       RestTemplate restTemplate) {
+                       @Value("${spring.security.oauth2.client.registration.google.client-id}") String googleClientId) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.restTemplate = restTemplate;
+
+        // Initialize the Google Verifier
+        this.verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                .setAudience(Collections.singletonList(googleClientId))
+                .build();
     }
 
     public String login(LoginDto loginDto) {
@@ -53,7 +61,7 @@ public class AuthService {
 
     public String register(RegisterDto registerDto) {
         if (userRepository.existsByEmail(registerDto.getEmail())) {
-            throw new RuntimeException("Email is already taken!"); // Handle this better
+            throw new RuntimeException("Email is already taken!");
         }
 
         User user = new User();
@@ -65,43 +73,42 @@ public class AuthService {
         return "User registered successfully!";
     }
 
-    public String loginWithGoogle(String googleAccessToken) {
-        // 1. Get user info from Google
-        String url = "https://www.googleapis.com/oauth2/v3/userinfo";
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(googleAccessToken);
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
+    // This is the modified Google login method
+    public String loginWithGoogle(String idTokenString) {
+        try {
+            // 1. Verify the ID token from the frontend
+            GoogleIdToken idToken = verifier.verify(idTokenString);
+            if (idToken == null) {
+                throw new RuntimeException("Invalid Google ID Token.");
+            }
 
-        Map<String, Object> userInfo = restTemplate.exchange(url, org.springframework.http.HttpMethod.GET, entity, Map.class).getBody();
+            // 2. Get user info from the token payload
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
 
-        if (userInfo == null) {
-            throw new RuntimeException("Could not get user info from Google");
+            // 3. Find or create user in our database
+            User user = userRepository.findByEmail(email)
+                    .orElseGet(() -> {
+                        User newUser = new User();
+                        newUser.setEmail(email);
+                        newUser.setName(name);
+                        newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+                        return userRepository.save(newUser);
+                    });
+
+            // 4. Create an Authentication object for our app
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                    user.getEmail(),
+                    null,
+                    Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"))
+            );
+
+            // 5. Generate and return *our* JWT token
+            return jwtTokenProvider.generateToken(authentication);
+
+        } catch (GeneralSecurityException | IOException e) {
+            throw new RuntimeException("Google token verification failed", e);
         }
-
-        String email = (String) userInfo.get("email");
-        String name = (String) userInfo.get("name");
-
-        // 2. Find or create user in local database
-        User user = userRepository.findByEmail(email)
-                .orElseGet(() -> {
-                    // Create new user if they don't exist
-                    User newUser = new User();
-                    newUser.setEmail(email);
-                    newUser.setName(name);
-                    // Create a random, secure password as it's required
-                    newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
-                    return userRepository.save(newUser);
-                });
-
-        // 3. Create a Spring Security Authentication object
-        // We trust Google, so we manually create the auth token
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                user.getEmail(),
-                null, // No password
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")) // Grant a default role
-        );
-
-        // 4. Generate and return your app's JWT token
-        return jwtTokenProvider.generateToken(authentication);
     }
 }
