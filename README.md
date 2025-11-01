@@ -170,8 +170,7 @@ cd parkease-frontend
 # Create your local .env file (copy from the root example)
 cp ../.env.example .env.local
 
-# Edit .env.local and fill in your secrets
-# (You only need the VITE_... keys for this)
+# Edit .env.local (You only need the VITE_... keys)
 nano .env.local
 
 # Install dependencies
@@ -243,11 +242,9 @@ Docker · Docker Compose · Nginx · Git
 
 [ ] Deploy the entire application to a cloud provider like AWS or Azure.
 
-🧑‍💼 Author
+LAuthor
 
-Pranjali Srivastava
-Java Developer | Full-Stack Enthusiast
-📍 Chennai, India
+Pranjali Srivastava Java Developer | Full-Stack Enthusiast 📍 Chennai, India
 
 <p align="center">
 <a href="https://www.linkedin.com/in/pranjali784/" target="_blank">
