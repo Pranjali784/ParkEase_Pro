@@ -1,255 +1,181 @@
-🚗 ParkEase
+# 🚗 ParkEase
 
 A real-time, location-aware parking sharing platform built with a modern full-stack architecture using Spring Boot and React.
 
 <p align="center">
-<img src="https://img.shields.io/badge/Java-17-blue.svg?logo=java&logoColor=white" alt="Java 17">
-<img src="https://img.shields.io/badge/Spring_Boot-3.x-brightgreen.svg?logo=spring&logoColor=white" alt="Spring Boot 3.x">
-<img src="https://img.shields.io/badge/Spring_Security-6.x-blueviolet.svg?logo=springsecurity&logoColor=white" alt="Spring Security 6.x">
-<img src="https://img.shields.io/badge/React-18-blue.svg?logo=react&logoColor=white" alt="React 18">
-<img src="https://img.shields.io/badge/MySQL-8-orange.svg?logo=mysql&logoColor=white" alt="MySQL 8">
-<img src="https://img.shields.io/badge/Radar-API-007AFF.svg?logo=radar&logoColor=white" alt="Radar API">
-<img src="https://img.shields.io/badge/Docker-Ready-blue.svg?logo=docker&logoColor=white" alt="Docker Ready">
+  <img src="https://img.shields.io/badge/Java-17-blue.svg?logo=java&logoColor=white" alt="Java 17">
+  <img src="https://img.shields.io/badge/Spring_Boot-3.x-brightgreen.svg?logo=spring&logoColor=white" alt="Spring Boot 3.x">
+  <img src="https://img.shields.io/badge/Spring_Security-6.x-blueviolet.svg?logo=springsecurity&logoColor=white" alt="Spring Security 6.x">
+  <img src="https://img.shields.io/badge/React-18-blue.svg?logo=react&logoColor=white" alt="React 18">
+  <img src="https://img.shields.io/badge/MySQL-8-orange.svg?logo=mysql&logoColor=white" alt="MySQL 8">
+  <img src="https://img.shields.io/badge/Radar-API-007AFF.svg?logo=radar&logoColor=white" alt="Radar API">
+  <img src="https://img.shields.io/badge/Docker-Ready-blue.svg?logo=docker&logoColor=white" alt="Docker Ready">
 </p>
 
-ParkEase is a full-stack web application that allows users to find and share private parking spots. Owners can list their available driveways or spots for specific times, and drivers can search for parking in real-time on an interactive map.
+ParkEase is a full-stack web application that enables users to find and share private parking spaces. Owners can list their available driveways or parking spots for specific times, while drivers can search and book in real time using an interactive map interface.
 
-📚 Table of Contents
+## 📚 Table of Contents
 
-🏛️ Project Structure
+- [🏗️ System Architecture](#️-system-architecture)
+- [🚀 Getting Started](#-getting-started)
+- [⚙️ Tech Stack](#️-tech-stack)
+- [🧠 Core Features](#-core-features)
+- [☁️ Future Enhancements](#️-future-enhancements)
+- [🧑‍💼 Author](#️-author)
 
-🚀 Getting Started
+## 🏗️ System Architecture
 
-⚙️ Tech Stack
+The platform consists of three main components, each containerized and orchestrated via Docker Compose.
 
-🧠 Core Features
+| Component | Description | Technology | Port |
+|-----------|-------------|------------|------|
+| 🖥️ parkease-frontend | Interactive React UI for search, listings, and map view | React 18 · Vite · TailwindCSS | 5190 |
+| ⚙️ parkease-backend | RESTful APIs for authentication, users, and parking management | Spring Boot 3 · JPA/Hibernate | 8080 |
+| 🗄️ parkease-db | Persistent data storage for users and parking info | MySQL 8 | 3307 |
 
-☁️ Future Enhancements
-
-🧑‍💼 Author
-
-🏛️ Project Structure
-
-The platform consists of three main components, containerized to run together in a monorepo structure.
-
-Component
-
-Description
-
-Technology
-
-Port (Docker)
-
-🖥️ parkease-frontend
-
-The complete React UI with interactive maps and user forms.
-
-React 18, Nginx
-
-5190
-
-⚙️ parkease-backend
-
-RESTful API for users, spots, search, and authentication.
-
-Spring Boot 3
-
-8080
-
-🗄️ parkease-db
-
-Persistent storage for all user and parking data.
-
-MySQL 8
-
-3307
-
-🚀 Getting Started
+## 🚀 Getting Started
 
 Follow these steps to get the project running locally.
 
-Prerequisites
+### Prerequisites
 
-Docker Desktop
+- Docker Desktop
+- Docker Engine must be running
 
-Docker Engine must be running
-
-🐳 Run Using Docker (Recommended)
+### 🐳 Run Using Docker (Recommended)
 
 The easiest way to spin up the entire stack.
 
-# 1. Clone the repository
-git clone [https://github.com/Pranjali784/ParkEase_Pro.git](https://github.com/Pranjali784/ParkEase_Pro.git)
+```bash
+# Clone the repository
+git clone https://github.com/Pranjali784/ParkEase_Pro.git
 cd ParkEase_Pro
 
-# 2. Copy the example .env file
-# (This file contains all the secrets for Docker)
+# Copy the example environment file
 cp .env.example .env
 
-# 3. Edit the .env file with your secrets
-# You must fill in all values marked with YOUR_...
-# (e.g., GOOGLE_CLIENT_ID, RADAR_SECRET_KEY, etc.)
-# nano .env  (or open in your editor)
+# Edit .env with your own secrets
+# (GOOGLE_CLIENT_ID, RADAR_SECRET_KEY, MYSQL_PASSWORD, etc.)
 
-# 4. Build and run all containers
-docker-compose up --build
-
+# Build and start all services
+docker compose up --build
+```
 
 Once all services are up, you can access:
 
-Service
+| Service | URL |
+|---------|-----|
+| 🚗 ParkEase App (Frontend) | http://localhost:5190 |
+| ⚙️ Backend API (via Nginx Proxy) | http://localhost:5190/api |
 
-URL
+### 🧩 Add Test Data
 
-🚗 ParkEase App
+By default, the database starts empty. Use MySQL Workbench (or any SQL client) to connect and run the seed data script:
 
-http://localhost:5190
+**Connection Details**
 
-⚙️ Backend API
+- Hostname: `127.0.0.1`
+- Port: `3307`
+- Username: `parkease_user`
+- Password: `<from .env>`
+- Default Schema: `parkease_db`
 
-http://localhost:5190/api (Proxied by Nginx)
+Run SQL from:
 
-IMPORTANT: Add Test Data
-The first time you run this, the database will be empty. Use MySQL Workbench (or your favorite DB tool) to connect to the Docker database on port 3307 and run the script found in parkease-api/src/main/resources/data.sql to add test users and parking spots.
-
-Database Connection Details (for Workbench):
-
-Hostname: 127.0.0.1
-
-Port: 3307
-
-Username: parkease_user (or your value from .env)
-
-Password: The MYSQL_PASSWORD you set in .env
-
-Default Schema: parkease_db
+```
+parkease-api/src/main/resources/data.sql
+```
 
 Stop all services:
 
-docker-compose down
+```bash
+docker compose down
+```
 
+Stop + remove database volume (clear all data):
 
-Stop + remove database (clear all data):
-
-docker-compose down -v
-
+```bash
+docker compose down -v
+```
 
 <details>
-<summary>💻 Run Locally (Manual Setup without Docker)</summary>
+<summary>💻 Run Locally (Without Docker)</summary>
 
-1️⃣ Database Setup
+### 1️⃣ Database Setup
 
-Ensure you have a local MySQL 8 instance running on port 3306.
+```sql
+# Create Database
+CREATE DATABASE parkease_db;
+```
 
-Manually create a database named parkease_db.
+Run the script `data.sql` manually to create test users and spots.
 
-Manually run the data.sql script to create test users and spots.
+### 2️⃣ Backend API
 
-2️⃣ Backend API (parkease-api)
-
-# Navigate to the backend folder
+```bash
 cd parkease-api
-
-# Create your secret properties file
 cp src/main/resources/application.properties.example src/main/resources/application.properties
-
-# Edit application.properties and fill in your secrets
-nano src/main/resources/application.properties
-
-# Run the app
+# Update your DB credentials and API keys
 ./mvnw spring-boot:run
+```
 
+Backend will run at http://localhost:8080
 
-The backend will be running on http://localhost:8080.
+### 3️⃣ Frontend
 
-3️⃣ Frontend App (parkease-frontend)
-
-# Navigate to the frontend folder
+```bash
 cd parkease-frontend
-
-# Create your local .env file (copy from the root example)
 cp ../.env.example .env.local
-
-# Edit .env.local (You only need the VITE_... keys)
-nano .env.local
-
-# Install dependencies
 npm install
-
-# Run the dev server (must be on port 5190)
 npm run dev
+```
 
-
-The frontend will be available at http://localhost:5190.
+Frontend will run at http://localhost:5190
 
 </details>
 
-⚙️ Tech Stack
+## ⚙️ Tech Stack
 
-Category
+| Category | Technologies |
+|----------|--------------|
+| Backend | Java 17 · Spring Boot 3 · Spring Security 6 (JWT) · Hibernate · Maven |
+| Frontend | React 18 · Vite · TailwindCSS · React Router |
+| Database | MySQL 8 |
+| Authentication | Email/Password · Google OAuth 2.0 |
+| Geocoding / Maps | Radar API (Autocomplete, Reverse Geocode, Map Search) |
+| DevOps / Tools | Docker · Docker Compose · Nginx · Git |
 
-Technologies
+## 🧠 Core Features
 
-Backend
+- ✅ **User Authentication** — Secure login via email/password or Google OAuth 2.0
+- ✅ **JWT Security** — All private routes protected via token-based auth
+- ✅ **Interactive Map Search** — Find nearby parking within 15 km radius
+- ✅ **Smart Autocomplete** — Radar API for addresses and location suggestions
+- ✅ **Add Parking Spots** — List driveways with location, availability, and vehicle type
+- ✅ **User Profiles** — View added listings and personal info
+- ✅ **Marker Jittering** — Prevent overlapping pins on identical coordinates
+- ✅ **Fully Containerized** — One command deployment via Docker Compose
 
-Java 17 · Spring Boot 3 · Spring Security 6 (JWT) · JPA/Hibernate · Maven
+## ☁️ Future Enhancements
 
-Frontend
+- [ ] Implement booking and reservation workflow
+- [ ] Integrate payments (Stripe / Razorpay)
+- [ ] Enable user-to-user chat between drivers and owners
+- [ ] Deploy to AWS / Azure Cloud
+- [ ] Add real-time notifications for booking status
 
-React 18 · React Router · Vite · TailwindCSS
+## 🧑‍💼 Author
 
-Database
-
-MySQL 8
-
-Authentication
-
-Manual (Email/Password) · Google OAuth 2.0 (via google-api-client)
-
-Geocoding
-
-Radar API (Search, Autocomplete, Maps)
-
-DevOps / Tools
-
-Docker · Docker Compose · Nginx · Git
-
-🧠 Core Features
-
-✅ Full-Stack Authentication: Secure user registration and login with both manual credentials and Google OAuth 2.0.
-
-✅ JWT Security: All private API routes are protected using JSON Web Tokens, ensuring a stateless and secure backend.
-
-✅ Real-Time Map Search: Find nearby parking spots within a 15km radius on an interactive map.
-
-✅ Place & Address Autocomplete: Uses Radar API for smart address/place search on both search and "Add Park" forms.
-
-✅ Add Parking: Authenticated users can list their own parking spots, pinning them to an exact location with available times and vehicle types.
-
-✅ User Profiles: A dedicated page for users to view their account details and a list of all parking spots they've added.
-
-✅ Marker Jittering: Automatically "jitters" (offsets) map markers at the same coordinates to prevent them from stacking and hiding.
-
-✅ Fully Containerized: The entire stack (DB, Backend, Frontend) runs with a single docker-compose up command for easy setup.
-
-☁️ Future Enhancements
-
-[ ] Implement a full booking and reservation system.
-
-[ ] Add payment integration using Stripe or Razorpay.
-
-[ ] Add user-to-user chat for drivers and spot owners.
-
-[ ] Deploy the entire application to a cloud provider like AWS or Azure.
-
-LAuthor
-
-Pranjali Srivastava Java Developer | Full-Stack Enthusiast 📍 Chennai, India
+**Pranjali Srivastava**  
+Java Developer | Full-Stack Enthusiast  
+📍 Chennai, India
 
 <p align="center">
-<a href="https://www.linkedin.com/in/pranjali784/" target="_blank">
-<img src="https://img.shields.io/badge/LinkedIn-Pranjali%20Srivastava-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn">
-</a>
+  <a href="https://www.linkedin.com/in/pranjali784/" target="_blank">
+    <img src="https://img.shields.io/badge/LinkedIn-Pranjali%20Srivastava-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn">
+  </a>
 </p>
 
-🐳 This project demonstrates a modern full-stack approach to solving real-world urban parking challenges using Spring Boot, React, MySQL, and Docker.
+---
+
+🐳 This project demonstrates a modern full-stack solution to urban parking challenges using Spring Boot, React, MySQL, and Docker.
