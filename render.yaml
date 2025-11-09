@@ -1,20 +1,10 @@
-services:
-  # 1️⃣ MySQL Database (Private Service)
-  - type: pserv
-    name: parkease-db
+databases:
+  - name: parkease-db
+    databaseName: parkease_db
     plan: free
-    runtime: docker
-    dockerCommand: >
-      docker run --name parkease-db
-      -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      -e MYSQL_DATABASE=${MYSQL_DATABASE}
-      -e MYSQL_USER=${MYSQL_USER}
-      -e MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      -p 3306:3306 mysql:8.0
-    envVars:
-      - fromGroup: parkease-secrets
 
-  # 2️⃣ Spring Boot Backend
+services:
+  # 1️⃣ Spring Boot Backend
   - type: web
     name: parkease-backend
     plan: free
@@ -22,19 +12,25 @@ services:
     dockerfilePath: ./parkease-api/Dockerfile
     autoDeploy: true
     envVars:
-      - fromGroup: parkease-secrets
+      - fromGroup: parkease-env
       - key: SPRING_DATASOURCE_URL
-        value: jdbc:mysql://parkease-db:3306/${MYSQL_DATABASE}
+        fromDatabase:
+          name: parkease-db
+          property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
-        value: ${MYSQL_USER}
+        fromDatabase:
+          name: parkease-db
+          property: user
       - key: SPRING_DATASOURCE_PASSWORD
-        value: ${MYSQL_PASSWORD}
+        fromDatabase:
+          name: parkease-db
+          property: password
       - key: SPRING_JPA_HIBERNATE_DDL_AUTO
         value: update
       - key: SERVER_PORT
         value: "8080"
 
-  # 3️⃣ React Frontend (Nginx)
+  # 2️⃣ React Frontend (Nginx)
   - type: web
     name: parkease-frontend
     plan: free
@@ -42,4 +38,4 @@ services:
     dockerfilePath: ./parkease-frontend/Dockerfile
     autoDeploy: true
     envVars:
-      - fromGroup: parkease-secrets
+      - fromGroup: parkease-env
