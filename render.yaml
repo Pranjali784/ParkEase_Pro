@@ -1,0 +1,94 @@
+services:
+  # 1. The MySQL Database
+  - type: db
+    name: parkease-db
+    plan: free # 'starter' is recommended for production
+    engine: mysql
+    databaseName: ${MYSQL_DATABASE}   # From your .env
+    databaseUser: ${MYSQL_USER}     # From your .env
+    envVars:
+      - key: MYSQL_DATABASE
+        fromGroup: parkease-secrets
+      - key: MYSQL_USER
+        fromGroup: parkease-secrets
+      - key: MYSQL_PASSWORD
+        fromGroup: parkease-secrets
+      - key: MYSQL_ROOT_PASSWORD
+        fromGroup: parkease-secrets
+
+  # 2. The Spring Boot Backend
+  - type: web
+    name: parkease-backend
+    plan: free # 'starter' is recommended for production
+    runtime: docker
+    region: ohio # You can change this
+    # Tells Render where to find your backend's Dockerfile
+    dockerContext: ./parkease-api
+    dockerfilePath: ./parkease-api/Dockerfile
+    # Set up environment variables
+    envVars:
+      # --- Automatic DB Connection (Render provides these) ---
+      - key: DB_HOST
+        fromService:
+          type: db
+          name: parkease-db
+          property: host
+      - key: DB_PORT
+        fromService:
+          type: db
+          name: parkease-db
+          property: port
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:mysql://${DB_HOST}:${DB_PORT}/${MYSQL_DATABASE}
+      - key: SPRING_DATASOURCE_USERNAME
+        fromService:
+          type: db
+          name: parkease-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromService:
+          type: db
+          name: parkease-db
+          property: password
+      # --- Your Secrets (from the Environment Group) ---
+      - key: APP_JWT_SECRET
+        fromGroup: parkease-secrets
+        key: JWT_SECRET
+      - key: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT-ID
+        fromGroup: parkease-secrets
+        key: GOOGLE_CLIENT_ID
+      - key: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT-SECRET
+        fromGroup: parkease-secrets
+        key: GOOGLE_CLIENT_SECRET
+      - key: RADAR_API_KEY
+        fromGroup: parkease-secrets
+        key: RADAR_SECRET_KEY
+      - key: MYSQL_DATABASE # Needed for the URL variable above
+        fromGroup: parkease-secrets
+
+  # 3. The React Frontend (as a Docker Web Service)
+  - type: web
+    name: parkease-frontend
+    plan: free
+    region: ohio # You can change this
+    runtime: docker
+    # Tells Render where your frontend code lives
+    dockerContext: ./parkease-frontend
+    dockerfilePath: ./parkease-frontend/Dockerfile
+    # These env vars are injected at BUILD time (for Vite)
+    envVars:
+      # This tells Vite to make API calls to /api,
+      # which our Nginx proxy will catch.
+      - key: VITE_API_BASE
+        value: /api
+      # These come from your Environment Group
+      - key: VITE_RADAR_PUBLISHABLE_KEY
+        fromGroup: parkease-secrets
+      - key: VITE_GOOGLE_CLIENT_ID
+        fromGroup: parkease-secrets
+
+# --- Environment Group Definition ---
+# This just tells the Blueprint to link to the group.
+# We will create the group in the Render Dashboard.
+envVarGroups:
+  - name: parkease-secrets
