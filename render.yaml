@@ -1,62 +1,67 @@
-# This top-level key is for managed databases
-databases:
-  - name: parkease-db
-    plan: free # 'starter' is recommended for production
-    engine: mysql
-    databaseName: ${MYSQL_DATABASE}   # From your env group
-    databaseUser: ${MYSQL_USER}     # From your env group
-
-# This top-level key is for services like web servers, APIs, etc.
 services:
-  # 1. The Spring Boot Backend
+  # 1. The MySQL Database (as a Private Docker Service)
+  - type: pvt
+    name: parkease-db
+    plan: free # 'starter' is better for a DB
+    runtime: docker
+    image: mysql:8.0
+    # Mount a persistent disk
+    disks:
+      - name: parkease-db-data
+        mountPath: /var/lib/mysql
+        sizeGB: 1 # You can start with 1 GB
+    envVars:
+      - key: MYSQL_ROOT_PASSWORD
+        fromGroup: parkease-secrets
+      - key: MYSQL_DATABASE
+        fromGroup: parkease-secrets
+      - key: MYSQL_USER
+        fromGroup: parkease-secrets
+      - key: MYSQL_PASSWORD
+        fromGroup: parkease-secrets
+
+  # 2. The Spring Boot Backend
   - type: web
     name: parkease-backend
-    plan: free # 'starter' is recommended for production
+    plan: free
     runtime: docker
     region: ohio
     dockerContext: ./parkease-api
     dockerfilePath: ./parkease-api/Dockerfile
     envVars:
-      # --- Automatic DB Connection (Render provides these) ---
-      - key: DB_HOST
-        fromService:
-          type: database  # Corrected: Must be 'database'
-          name: parkease-db
-          property: host
-      - key: DB_PORT
-        fromService:
-          type: database # Corrected: Must be 'database'
-          name: parkease-db
-          property: port
+      # --- DB Connection (points to the 'parkease-db' service) ---
       - key: SPRING_DATASOURCE_URL
-        value: jdbc:mysql://${DB_HOST}:${DB_PORT}/${MYSQL_DATABASE}
+        value: jdbc:mysql://parkease-db:3306/${MYSQL_DATABASE}
       - key: SPRING_DATASOURCE_USERNAME
-        fromService:
-          type: database # Corrected: Must be 'database'
-          name: parkease-db
-          property: user
+        fromGroup:
+          name: parkease-secrets
+          key: MYSQL_USER # Use the key from the group
       - key: SPRING_DATASOURCE_PASSWORD
-        fromService:
-          type: database # Corrected: Must be 'database'
-          name: parkease-db
-          property: password
-      # --- Your Secrets (from the Environment Group) ---
-      - key: APP_JWT_SECRET
-        fromGroup: parkease-secrets
-        key: JWT_SECRET
-      - key: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT-ID
-        fromGroup: parkease-secrets
-        key: GOOGLE_CLIENT_ID
-      - key: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT-SECRET
-        fromGroup: parkease-secrets
-        key: GOOGLE_CLIENT_SECRET
-      - key: RADAR_API_KEY
-        fromGroup: parkease-secrets
-        key: RADAR_SECRET_KEY
-      - key: MYSQL_DATABASE # Needed for the URL variable above
+        fromGroup:
+          name: parkease-secrets
+          key: MYSQL_PASSWORD # Use the key from the group
+      - key: MYSQL_DATABASE # Needed for the URL variable
         fromGroup: parkease-secrets
 
-  # 2. The React Frontend (as a Docker Web Service)
+      # --- API Key Mapping (This is the fix) ---
+      - key: APP_JWT_SECRET # What Spring Boot needs
+        fromGroup:
+          name: parkease-secrets
+          key: JWT_SECRET # The key in the env group
+      - key: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT-ID
+        fromGroup:
+          name: parkease-secrets
+          key: GOOGLE_CLIENT_ID
+      - key: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT-SECRET
+        fromGroup:
+          name: parkease-secrets
+          key: GOOGLE_CLIENT_SECRET
+      - key: RADAR_API_KEY
+        fromGroup:
+          name: parkease-secrets
+          key: RADAR_SECRET_KEY
+
+  # 3. The React Frontend (as a Docker Web Service)
   - type: web
     name: parkease-frontend
     plan: free
@@ -64,7 +69,6 @@ services:
     runtime: docker
     dockerContext: ./parkease-frontend
     dockerfilePath: ./parkease-frontend/Dockerfile
-    # These env vars are injected at BUILD time (for Vite)
     envVars:
       - key: VITE_API_BASE
         value: /api
