@@ -1,6 +1,6 @@
 services:
   # 1. The MySQL Database (as a Private Docker Service)
-  - type: pvt
+  - type: pserv # <--- THIS IS THE FIX (Private Service)
     name: parkease-db
     plan: free # 'starter' is better for a DB
     runtime: docker
