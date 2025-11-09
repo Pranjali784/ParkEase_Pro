@@ -1,15 +1,15 @@
 services:
-  # 1. The MySQL Database (as a Private Docker Service)
-  - type: pserv # <--- THIS IS THE FIX (Private Service)
+  # 1. MySQL Database (Private Service)
+  - type: pserv
     name: parkease-db
-    plan: free # 'starter' is better for a DB
+    plan: free
     runtime: docker
-    image: mysql:8.0
-    # Mount a persistent disk
-    disks:
-      - name: parkease-db-data
-        mountPath: /var/lib/mysql
-        sizeGB: 1 # You can start with 1 GB
+    image:
+      url: mysql:8.0
+    disk:
+      name: parkease-db-data
+      mountPath: /var/lib/mysql
+      sizeGB: 1
     envVars:
       - key: MYSQL_ROOT_PASSWORD
         fromGroup: parkease-secrets
@@ -20,7 +20,7 @@ services:
       - key: MYSQL_PASSWORD
         fromGroup: parkease-secrets
 
-  # 2. The Spring Boot Backend
+  # 2. Spring Boot Backend
   - type: web
     name: parkease-backend
     plan: free
@@ -29,39 +29,24 @@ services:
     dockerContext: ./parkease-api
     dockerfilePath: ./parkease-api/Dockerfile
     envVars:
-      # --- DB Connection (points to the 'parkease-db' service) ---
       - key: SPRING_DATASOURCE_URL
         value: jdbc:mysql://parkease-db:3306/${MYSQL_DATABASE}
       - key: SPRING_DATASOURCE_USERNAME
-        fromGroup:
-          name: parkease-secrets
-          key: MYSQL_USER # Use the key from the group
+        fromGroup: parkease-secrets
       - key: SPRING_DATASOURCE_PASSWORD
-        fromGroup:
-          name: parkease-secrets
-          key: MYSQL_PASSWORD # Use the key from the group
-      - key: MYSQL_DATABASE # Needed for the URL variable
+        fromGroup: parkease-secrets
+      - key: MYSQL_DATABASE
+        fromGroup: parkease-secrets
+      - key: APP_JWT_SECRET
+        fromGroup: parkease-secrets
+      - key: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID
+        fromGroup: parkease-secrets
+      - key: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET
+        fromGroup: parkease-secrets
+      - key: RADAR_API_KEY
         fromGroup: parkease-secrets
 
-      # --- API Key Mapping (This is the fix) ---
-      - key: APP_JWT_SECRET # What Spring Boot needs
-        fromGroup:
-          name: parkease-secrets
-          key: JWT_SECRET # The key in the env group
-      - key: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT-ID
-        fromGroup:
-          name: parkease-secrets
-          key: GOOGLE_CLIENT_ID
-      - key: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT-SECRET
-        fromGroup:
-          name: parkease-secrets
-          key: GOOGLE_CLIENT_SECRET
-      - key: RADAR_API_KEY
-        fromGroup:
-          name: parkease-secrets
-          key: RADAR_SECRET_KEY
-
-  # 3. The React Frontend (as a Docker Web Service)
+  # 3. React Frontend
   - type: web
     name: parkease-frontend
     plan: free
@@ -77,6 +62,6 @@ services:
       - key: VITE_GOOGLE_CLIENT_ID
         fromGroup: parkease-secrets
 
-# --- Environment Group Definition ---
+# --- Environment Group ---
 envVarGroups:
   - name: parkease-secrets
