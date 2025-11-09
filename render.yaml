@@ -1,83 +1,48 @@
 services:
-  # 1. The MySQL Database (as a Private Docker Service)
+  # 1️⃣ MySQL Database (Private Service)
   - type: pserv
     name: parkease-db
     plan: free
     runtime: docker
-    image:
-      url: mysql:8.0  # <--- FIX 1
-    disk: # <--- FIX 2
-      name: parkease-db-data
-      mountPath: /var/lib/mysql
-      sizeGB: 1
+    image: mysql:8.0
     envVars:
-      - key: MYSQL_ROOT_PASSWORD
-        fromGroup: parkease-secrets
-        property: MYSQL_ROOT_PASSWORD # <--- FIX 3
-      - key: MYSQL_DATABASE
-        fromGroup: parkease-secrets
-        property: MYSQL_DATABASE
-      - key: MYSQL_USER
-        fromGroup: parkease-secrets
-        property: MYSQL_USER
-      - key: MYSQL_PASSWORD
-        fromGroup: parkease-secrets
-        property: MYSQL_PASSWORD
+      - fromGroup: parkease-secrets
+    # No disks allowed on free tier, so omit 'disks'
 
-  # 2. The Spring Boot Backend
+  # 2️⃣ Spring Boot Backend
   - type: web
     name: parkease-backend
     plan: free
-    runtime: docker
-    region: ohio
-    dockerContext: ./parkease-api
+    env: docker
+    buildCommand: ""
     dockerfilePath: ./parkease-api/Dockerfile
+    autoDeploy: true
     envVars:
-      # --- DB Connection (points to the 'parkease-db' service) ---
+      - fromGroup: parkease-secrets
+      # Map custom JDBC URL using Render's internal service DNS name
       - key: SPRING_DATASOURCE_URL
         value: jdbc:mysql://parkease-db:3306/${MYSQL_DATABASE}
       - key: SPRING_DATASOURCE_USERNAME
-        fromGroup: parkease-secrets
-        property: MYSQL_USER # <--- FIX 3
+        value: ${MYSQL_USER}
       - key: SPRING_DATASOURCE_PASSWORD
-        fromGroup: parkease-secrets
-        property: MYSQL_PASSWORD # <--- FIX 3
-      - key: MYSQL_DATABASE
-        fromGroup: parkease-secrets
-        property: MYSQL_DATABASE # <--- FIX 3
+        value: ${MYSQL_PASSWORD}
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: SPRING_JPA_SHOW_SQL
+        value: "true"
+      - key: SERVER_PORT
+        value: "8080"
 
-      # --- API Key Mapping ---
-      - key: APP_JWT_SECRET
-        fromGroup: parkease-secrets
-        property: JWT_SECRET # <--- FIX 3
-      - key: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT-ID
-        fromGroup: parkease-secrets
-        property: GOOGLE_CLIENT_ID # <--- FIX 3
-      - key: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT-SECRET
-        fromGroup: parkease-secrets
-        property: GOOGLE_CLIENT_SECRET # <--- FIX 3
-      - key: RADAR_API_KEY
-        fromGroup: parkease-secrets
-        property: RADAR_SECRET_KEY # <--- FIX 3
-
-  # 3. The React Frontend (as a Docker Web Service)
+  # 3️⃣ React Frontend (Nginx)
   - type: web
     name: parkease-frontend
     plan: free
-    region: ohio
-    runtime: docker
-    dockerContext: ./parkease-frontend
+    env: docker
     dockerfilePath: ./parkease-frontend/Dockerfile
+    autoDeploy: true
     envVars:
-      - key: VITE_API_BASE
-        value: /api
-      - key: VITE_RADAR_PUBLISHABLE_KEY
-        fromGroup: parkease-secrets
-        property: VITE_RADAR_PUBLISHABLE_KEY # <--- FIX 3
-      - key: VITE_GOOGLE_CLIENT_ID
-        fromGroup: parkease-secrets
-        property: VITE_GOOGLE_CLIENT_ID # <--- FIX 3
-
-# --- Environment Group Definition ---
-envVarGroups:
-  - name: parkease-secrets
+      - fromGroup: parkease-secrets
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /
