@@ -4,22 +4,19 @@ services:
     name: parkease-db
     plan: free
     runtime: docker
-    image: mysql:8.0
+    dockerCommand: docker run --name parkease-db -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} -e MYSQL_DATABASE=${MYSQL_DATABASE} -e MYSQL_USER=${MYSQL_USER} -e MYSQL_PASSWORD=${MYSQL_PASSWORD} -p 3306:3306 mysql:8.0
     envVars:
       - fromGroup: parkease-secrets
-    # No disks allowed on free tier, so omit 'disks'
 
   # 2️⃣ Spring Boot Backend
   - type: web
     name: parkease-backend
     plan: free
     env: docker
-    buildCommand: ""
     dockerfilePath: ./parkease-api/Dockerfile
     autoDeploy: true
     envVars:
       - fromGroup: parkease-secrets
-      # Map custom JDBC URL using Render's internal service DNS name
       - key: SPRING_DATASOURCE_URL
         value: jdbc:mysql://parkease-db:3306/${MYSQL_DATABASE}
       - key: SPRING_DATASOURCE_USERNAME
@@ -28,8 +25,6 @@ services:
         value: ${MYSQL_PASSWORD}
       - key: SPRING_JPA_HIBERNATE_DDL_AUTO
         value: update
-      - key: SPRING_JPA_SHOW_SQL
-        value: "true"
       - key: SERVER_PORT
         value: "8080"
 
