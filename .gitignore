@@ -29,7 +29,6 @@ yarn-error.log*
 # ========================
 # SECRET FILES (CRITICAL)
 # ========================
-/parkease-api/src/main/resources/application.properties
 /parkease-frontend/.env.local
 
 # ========================
