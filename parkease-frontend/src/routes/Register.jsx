@@ -15,11 +15,33 @@ export default function Register() {
   };
 
   return (
-    <form onSubmit={submit}>
-      <input onChange={(e) => setName(e.target.value)} />
-      <input onChange={(e) => setEmail(e.target.value)} />
-      <input type="password" onChange={(e) => setPassword(e.target.value)} />
-      <button>Register</button>
-    </form>
+    <div className="max-w-md mx-auto py-10">
+      <h2 className="text-2xl font-bold mb-6">Register</h2>
+
+      <form onSubmit={submit} className="space-y-4">
+        <input
+          placeholder="Name"
+          className="w-full border p-2"
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
+        <input
+          placeholder="Email"
+          className="w-full border p-2"
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          className="w-full border p-2"
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button className="w-full bg-black text-white py-2">
+          Register
+        </button>
+      </form>
+    </div>
   );
 }
