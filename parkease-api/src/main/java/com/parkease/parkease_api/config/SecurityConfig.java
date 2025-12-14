@@ -53,7 +53,8 @@ public class SecurityConfig {
                     config.setAllowedOriginPatterns(List.of(
                             "http://localhost:5171",
                             "http://localhost:5173",
-                            "http://localhost:5179",
+                            "http://localhost:5190",
+                            "https://parkease-frontend-ten.vercel.app",
                             "https://*.onrender.com"
                     ));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

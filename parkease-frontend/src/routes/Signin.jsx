@@ -1,56 +1,60 @@
-import { useState } from "react";
-import { GoogleLogin } from "@react-oauth/google";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 
 export default function Signin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  // 🔐 NORMAL LOGIN
   const submit = async (e) => {
     e.preventDefault();
-    try {
-      const res = await api.post("/auth/login", { email, password });
-      login(res.data.accessToken);
-      navigate("/services");
-    } catch {
-      setError("Invalid email or password");
-    }
+    const res = await api.post("/auth/login", { email, password });
+    login(res.data.accessToken);
+    navigate("/services");
   };
 
-  const googleSuccess = async (cred) => {
+  // 🔥 GOOGLE LOGIN (THIS IS THE ONLY THING THAT MUST HAPPEN)
+  const googleSuccess = async (response) => {
     try {
+      const idToken = response.credential;
+
       const res = await api.post("/auth/google", {
-        idToken: cred.credential,
+        idToken: idToken,
       });
+
       login(res.data.accessToken);
       navigate("/services");
-    } catch {
-      setError("Google login failed on the server");
+    } catch (err) {
+      console.error("Google login failed", err);
+      alert("Google login failed");
     }
   };
 
   return (
-    <div className="auth-card">
-      <h2>Sign In</h2>
-
-      {error && <p className="error">{error}</p>}
-
+    <div>
       <form onSubmit={submit}>
-        <input placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
+        <input
+          placeholder="Email"
+          onChange={(e) => setEmail(e.target.value)}
+        />
         <input
           type="password"
           placeholder="Password"
           onChange={(e) => setPassword(e.target.value)}
         />
-        <button>Login</button>
+        <button type="submit">Login</button>
       </form>
 
-      <GoogleLogin onSuccess={googleSuccess} />
+      {/* ✅ NO REDIRECT, NO BACKEND OAUTH */}
+      <GoogleLogin
+        onSuccess={googleSuccess}
+        onError={() => alert("Google Login Failed")}
+      />
     </div>
   );
 }
