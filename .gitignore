@@ -35,3 +35,6 @@ yarn-error.log*
 # DOCKER (NEW)
 # ========================
 /.env
+
+.env
+.env.production
