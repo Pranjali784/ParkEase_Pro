@@ -1,18 +1,17 @@
 package com.parkease.parkease_api.service;
-import java.math.BigDecimal;
+
 import com.parkease.parkease_api.dto.*;
 import com.parkease.parkease_api.model.ParkingSpace;
-import com.parkease.parkease_api.model.User; // IMPORT USER
+import com.parkease.parkease_api.model.User;
 import com.parkease.parkease_api.repositories.ParkingSpaceRepository;
-import com.parkease.parkease_api.repositories.UserRepository; // IMPORT USER REPO
+import com.parkease.parkease_api.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Collections;
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -22,92 +21,87 @@ public class ParkingSpaceService {
     @Autowired
     private ParkingSpaceRepository parkingSpaceRepository;
 
-    // INJECT USER REPO
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    public RadarAPIService radarAPIService;
+    /* =========================
+       REQUIRED BY CONTROLLER
+       ========================= */
 
-    // ADD THIS NEW METHOD
-    public List<ParkingSpaceSummaryDTO> getSpacesByOwner(String ownerEmail) {
-        User owner = userRepository.findByEmail(ownerEmail)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-        return parkingSpaceRepository.findByOwner(owner)
-                .stream()
-                .map(ParkingSpaceMapper::toSummary)
-                .collect(Collectors.toList());
-    }
-
-    // MODIFIED METHOD
-    public ParkingSpaceDetailDTO addSpaceAndReturnDetails(ParkingSpaceRequestDTO dto, String ownerEmail) {
-        // Find the owner
-        User owner = userRepository.findByEmail(ownerEmail)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
-
-        // --- REMOVED THIS BLOCK ---
-        // Coordinates coords;
-        // try {
-        //     coords = radarAPIService.geocode(dto.getAddress());
-        // } catch (Exception e) {
-        //     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not find address: " + dto.getAddress());
-        // }
-        // -------------------------
-
-        // Create new ParkingSpace entity
-        ParkingSpace space = new ParkingSpace();
-        space.setOwner(owner);
-        space.setAddress(dto.getAddress()); // Set address from DTO
-        space.setVehicleTypes(dto.getVehicleTypes());
-        space.setModelType(dto.getModelType());
-        space.setAvailableFrom(dto.getAvailableFrom());
-        space.setAvailableTo(dto.getAvailableTo());
-
-        // --- SET COORDS DIRECTLY FROM DTO ---
-        space.setLatitude(dto.getLatitude());
-        space.setLongitude(dto.getLongitude());
-        // ------------------------------------
-
-        space.setCapacity(1); // Default to 1 spot
-        space.setNotes("");   // Default to empty notes
-
-        ParkingSpace saved = parkingSpaceRepository.save(space);
-        return ParkingSpaceMapper.toDetail(saved);
-    }
-
-    // --- MODIFIED METHOD ---
-    public SearchResponseDTO searchSummaries(double centerLat, double centerLon) {
-
-        // We no longer need to geocode. We get the coords directly.
-        Coordinates center = new Coordinates(
-                BigDecimal.valueOf(centerLat),
-                BigDecimal.valueOf(centerLon)
-        );
-
-        double radiusKm = 15.0; // 15km radius
-
-        List<ParkingSpace> entities =
-                parkingSpaceRepository.findSpacesNearby(centerLat, centerLon, radiusKm);
-
-        List<ParkingSpaceSummaryDTO> dtos = entities.stream()
-                .map(ParkingSpaceMapper::toSummary)
-                .collect(Collectors.toList());
-
-        return new SearchResponseDTO(center, dtos);
-    }
-
-    // Details
-    public ParkingSpaceDetailDTO getDetails(Long id) {
-        ParkingSpace ps = parkingSpaceRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Parking space not found"));
-        return ParkingSpaceMapper.toDetail(ps);
-    }
-
+    // ✅ FIX #1
     public List<ParkingSpaceSummaryDTO> getAllSummaries() {
         return parkingSpaceRepository.findAll()
                 .stream()
                 .map(ParkingSpaceMapper::toSummary)
                 .toList();
+    }
+
+    // ✅ FIX #2
+    public List<ParkingSpaceSummaryDTO> getSpacesByOwner(String ownerEmail) {
+        User owner = userRepository.findByEmail(ownerEmail)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        return parkingSpaceRepository.findByOwner(owner)
+                .stream()
+                .map(ParkingSpaceMapper::toSummary)
+                .toList();
+    }
+
+    // ✅ FIX #3
+    public ParkingSpaceDetailDTO addSpaceAndReturnDetails(
+            ParkingSpaceRequestDTO dto,
+            String ownerEmail
+    ) {
+        User owner = userRepository.findByEmail(ownerEmail)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        ParkingSpace space = new ParkingSpace();
+        space.setOwner(owner);
+        space.setAddress(dto.getAddress());
+        space.setVehicleTypes(dto.getVehicleTypes());
+        space.setModelType(dto.getModelType());
+        space.setLatitude(dto.getLatitude());
+        space.setLongitude(dto.getLongitude());
+        space.setAvailableFrom(dto.getAvailableFrom());
+        space.setAvailableTo(dto.getAvailableTo());
+        space.setCapacity(1);
+        space.setNotes("");
+
+        ParkingSpace saved = parkingSpaceRepository.save(space);
+        return ParkingSpaceMapper.toDetail(saved);
+    }
+
+    // ✅ FIX #4
+    public ParkingSpaceDetailDTO getDetails(Long id) {
+        ParkingSpace ps = parkingSpaceRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResponseStatusException(NOT_FOUND, "Parking space not found"));
+
+        return ParkingSpaceMapper.toDetail(ps);
+    }
+
+    /* =========================
+       SEARCH (10 KM RADIUS)
+       ========================= */
+
+    public SearchResponseDTO searchSummaries(double centerLat, double centerLon) {
+
+        Coordinates center = new Coordinates(
+                BigDecimal.valueOf(centerLat),
+                BigDecimal.valueOf(centerLon)
+        );
+
+        // ✅ EXACT REQUIREMENT
+        double radiusKm = 10.0;
+
+        List<ParkingSpaceSummaryDTO> spots =
+                parkingSpaceRepository.findSpacesNearby(centerLat, centerLon, radiusKm)
+                        .stream()
+                        .map(ParkingSpaceMapper::toSummary)
+                        .toList();
+
+        return new SearchResponseDTO(center, spots);
     }
 }

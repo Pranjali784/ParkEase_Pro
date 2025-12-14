@@ -2,69 +2,61 @@ import { useState, useRef, useEffect } from "react";
 import Radar from "radar-sdk-js";
 import "radar-sdk-js/dist/radar.css";
 
-const VITE_API_BASE = import.meta.env.VITE_API_BASE;
-const VITE_RADAR_KEY = import.meta.env.VITE_RADAR_PUBLISHABLE_KEY;
+const API_BASE = import.meta.env.VITE_API_BASE;
+const RADAR_KEY = import.meta.env.VITE_RADAR_PUBLISHABLE_KEY;
 
 export default function Services() {
-  const [selectedLat, setSelectedLat] = useState(null);
-  const [selectedLon, setSelectedLon] = useState(null);
-
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
-
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
   const autocompleteRef = useRef(null);
-  const radarInitialized = useRef(false);
+  const initialized = useRef(false);
 
+  const [spots, setSpots] = useState([]);
+  const [selectedLat, setSelectedLat] = useState(null);
+  const [selectedLon, setSelectedLon] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  /* ---------------- INIT MAP + AUTOCOMPLETE ---------------- */
   useEffect(() => {
-    if (radarInitialized.current) {
-      return;
-    }
-    radarInitialized.current = true;
+    if (initialized.current) return;
+    initialized.current = true;
 
-    if (!VITE_RADAR_KEY) {
-      setError("Failed to load map: Missing API key.");
-      return;
-    }
-    Radar.initialize(VITE_RADAR_KEY);
+    Radar.initialize(RADAR_KEY);
 
-    if (mapRef.current && !mapInstance.current) {
-      mapInstance.current = Radar.ui.map({
-        container: mapRef.current,
-        // --- FIX #1: Changed to DARK map style ---
-        style: "radar-dark-v1",
-        center: [80.27, 13.08],
-        zoom: 10,
-      });
-    }
+    mapInstance.current = Radar.ui.map({
+      container: mapRef.current,
+      style: "radar-dark-v1",
+      center: [80.1275, 12.9249], // Tambaram default
+      zoom: 11,
+    });
 
-    if (autocompleteRef.current) {
-      Radar.ui.autocomplete({
-        container: autocompleteRef.current,
-        placeholder: "Search for a location (e.g., Tambaram)",
-        layers: ['place', 'address'],
-        near: {
-          latitude: 13.0827,
-          longitude: 80.2707
-        },
-        onSelection: (result) => {
-          const { formattedAddress, latitude, longitude } = result;
-          setSelectedLat(latitude);
-          setSelectedLon(longitude);
+    Radar.ui.autocomplete({
+      container: autocompleteRef.current,
+      placeholder:
+        "Search eg: Tambaram Station, Guduvancheri Station",
+      layers: ["place", "address"],
+      near: { latitude: 12.9249, longitude: 80.1275 },
 
-          const input = autocompleteRef.current.querySelector('input');
-          if (input) input.value = formattedAddress;
-        },
-      });
-    }
+      onSelection: ({ formattedAddress, latitude, longitude }) => {
+        setSelectedLat(latitude);
+        setSelectedLon(longitude);
+
+        const input =
+          autocompleteRef.current.querySelector("input");
+        if (input) input.value = formattedAddress;
+
+        handleSearch(null, latitude, longitude);
+      },
+    });
   }, []);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!selectedLat || !selectedLon) {
-      setError("Please select a location from the list.");
+  /* ---------------- SEARCH HANDLER ---------------- */
+  const handleSearch = async (e, lat = selectedLat, lon = selectedLon) => {
+    if (e) e.preventDefault();
+    if (!lat || !lon) {
+      setError("Please select a location");
       return;
     }
 
@@ -73,116 +65,114 @@ export default function Services() {
 
     try {
       const res = await fetch(
-        `${VITE_API_BASE}/parking-spaces/search?lat=${selectedLat}&lon=${selectedLon}`
+        `${API_BASE}/parking-spaces/search?lat=${lat}&lon=${lon}`
       );
-
-      if (!res.ok) {
-        throw new Error(`Search failed (${res.status})`);
-      }
-
       const data = await res.json();
 
-      markersRef.current.forEach((marker) => marker.remove());
+      // clear old markers
+      markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
 
-      if (!data.center || data.spots.length === 0) {
-        setError("No parking spots found near that location.");
-        if (data.center) {
-           mapInstance.current.flyTo({
-            center: [data.center.longitude, data.center.latitude],
-            zoom: 14,
-          });
-        }
+      if (!data.spots || data.spots.length === 0) {
+        setSpots([]);
+        setError("No parking spaces found");
         return;
       }
 
-      const jitterAmount = 0.0008;
-      const coordinateMap = new Map();
+      setSpots(data.spots);
 
-      for (const spot of data.spots) {
-        const {
-          id, address, latitude, longitude,
-          vehicleTypes, modelType,
-          capacity, availableFrom, availableTo,
-        } = spot;
+      // ✅ ONE MARKER PER ROW (NO GROUPING)
+      data.spots.forEach((spot) => {
+        const popup = Radar.ui.popup({
+          html: `
+            <div style="font-size:14px">
+              <strong>${spot.address}</strong><br/>
+              ${spot.vehicleTypes} ${spot.modelType || ""}<br/>
+              Capacity: ${spot.capacity}<br/>
+              ${spot.availableFrom} - ${spot.availableTo}
+            </div>
+          `,
+        });
 
-        const originalLat = parseFloat(latitude);
-        const originalLon = parseFloat(longitude);
-
-        let finalLat = originalLat;
-        let finalLon = originalLon;
-
-        const coordKey = `${originalLat},${originalLon}`;
-        if (coordinateMap.has(coordKey)) {
-          finalLat = originalLat + (Math.random() - 0.5) * jitterAmount;
-          finalLon = originalLon + (Math.random() - 0.5) * jitterAmount;
-        }
-        coordinateMap.set(coordKey, true);
-
-        const popupHTML = `
-          <div style="font-family: sans-serif; font-size: 14px; color: #333;">
-            <strong style="font-size: 16px;">${address}</strong>
-            <p>Type: ${vehicleTypes} ${modelType ? `(${modelType})` : ''} | Spots: ${capacity}</p>
-            <p>Time: ${availableFrom} - ${availableTo}</p>
-            <a href="/parking/${id}" style="color: #007bff; text-decoration: none;">View Details</a>
-          </div>
-        `;
-
-        const popup = Radar.ui.popup({ html: popupHTML });
-
-        const marker = Radar.ui.marker({ color: "#007AFF", size: 30 })
-          .setLngLat([finalLon, finalLat])
+        const marker = Radar.ui
+          .marker({ color: "#007AFF", size: 28 })
+          .setLngLat([spot.longitude, spot.latitude])
           .setPopup(popup)
           .addTo(mapInstance.current);
 
         markersRef.current.push(marker);
-      }
-
-      mapInstance.current.flyTo({
-        center: [data.center.longitude, data.center.latitude],
-        zoom: 14,
       });
 
+      mapInstance.current.flyTo({
+        center: [lon, lat],
+        zoom: 14,
+      });
     } catch (err) {
-      console.error(err);
-      setError(err.message || "An unknown error occurred.");
+      setError("Search failed");
     } finally {
       setLoading(false);
     }
   };
 
+  /* ---------------- UI ---------------- */
   return (
-    // --- FIX #2: Added flex-grow and flex container to fill space ---
-    <div className="flex-grow flex flex-col w-full max-w-5xl mx-auto px-5 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-center text-black">Find Parking</h1>
+    <div className="flex-grow flex flex-col w-full max-w-6xl mx-auto px-5 py-8">
+      <h1 className="text-3xl font-bold mb-6 text-center">
+        Find Parking
+      </h1>
 
       <form onSubmit={handleSearch} className="flex gap-2 mb-4">
         <div ref={autocompleteRef} className="flex-grow" />
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 disabled:bg-gray-500"
+          className="bg-blue-600 text-white px-6 py-3 rounded-md"
         >
           {loading ? "..." : "Search"}
         </button>
       </form>
 
       {error && (
-        <div className="bg-red-100 border border-red-300 text-red-700 p-3 rounded-md mb-4 text-center">
+        <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-center">
           {error}
         </div>
       )}
 
-      {/* --- FIX #2: Added flex-grow to make map fill space --- */}
+      {/* ✅ MAP SIZE FIXED HERE */}
       <div
         ref={mapRef}
-        className="flex-grow" // This makes the map fill the remaining vertical space
         style={{
           width: "100%",
+          height: "420px",
           borderRadius: "12px",
           overflow: "hidden",
         }}
+        className="mb-6"
       />
+
+      {/* LIST VIEW */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {spots.map((spot) => (
+          <div
+            key={spot.id}
+            className="border rounded-lg p-4 cursor-pointer hover:bg-blue-50"
+            onClick={() =>
+              mapInstance.current.flyTo({
+                center: [spot.longitude, spot.latitude],
+                zoom: 16,
+              })
+            }
+          >
+            <h3 className="font-semibold">{spot.address}</h3>
+            <p>
+              {spot.vehicleTypes} | {spot.capacity} spots
+            </p>
+            <p className="text-sm text-gray-600">
+              {spot.availableFrom} - {spot.availableTo}
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
