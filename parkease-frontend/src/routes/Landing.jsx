@@ -4,8 +4,8 @@ export default function Landing() {
   const navigate = useNavigate();
 
   return (
-    <section className="flex-grow flex items-center justify-center bg-white">
-      <div className="max-w-7xl w-full px-6 py-28 text-center">
+    <section className="flex-grow flex items-center justify-center bg-white overflow-hidden h-[calc(100vh-64px)]">
+      <div className="max-w-7xl w-full px-6 text-center">
 
         {/* HEADLINE */}
         <h1 className="text-[64px] md:text-[72px] font-extrabold tracking-tight text-black mb-6">

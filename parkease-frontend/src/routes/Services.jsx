@@ -17,7 +17,7 @@ export default function Services() {
       return;
     }
 
-    // ✅ Prevent double init & null ref
+    // ✅ Prevent double init / null ref
     if (!searchRef.current || radarReady.current) return;
 
     radarReady.current = true;
@@ -27,7 +27,7 @@ export default function Services() {
       container: searchRef.current,
       placeholder: "Search location...",
       onSelection: async ({ latitude, longitude }) => {
-        // ✅ CRITICAL SAFETY CHECK
+        // ✅ SAFETY CHECK (CRITICAL)
         if (
           typeof latitude !== "number" ||
           typeof longitude !== "number"
@@ -61,41 +61,44 @@ export default function Services() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
-      <h1 className="text-3xl font-bold">Nearby Parking</h1>
+    <div className="h-[calc(100vh-64px)] overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 py-6 space-y-4">
 
-      {/* SEARCH BAR */}
-      <div
-        ref={searchRef}
-        className="border rounded-lg px-4 py-3 bg-white shadow"
-      />
+        <h1 className="text-3xl font-bold">Nearby Parking</h1>
 
-      {/* MAP */}
-      {location && (
-        <RadarMap
-          latitude={location.lat}
-          longitude={location.lon}
+        {/* SEARCH BAR */}
+        <div
+          ref={searchRef}
+          className="border rounded-lg px-4 py-3 bg-white shadow"
         />
-      )}
 
-      {/* RESULTS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {spots.map((s) => (
-          <div
-            key={s.id}
-            className="bg-white border rounded-xl p-4 shadow"
-          >
-            <h3 className="font-semibold">{s.address}</h3>
-            <p className="text-sm text-gray-500">{s.vehicleTypes}</p>
-          </div>
-        ))}
+        {/* MAP */}
+        {location && (
+          <RadarMap
+            latitude={location.lat}
+            longitude={location.lon}
+          />
+        )}
+
+        {/* RESULTS (internal scroll if needed) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-auto max-h-[35vh] pr-2">
+          {spots.map((s) => (
+            <div
+              key={s.id}
+              className="bg-white border rounded-xl p-4 shadow"
+            >
+              <h3 className="font-semibold">{s.address}</h3>
+              <p className="text-sm text-gray-500">{s.vehicleTypes}</p>
+            </div>
+          ))}
+        </div>
+
+        {spots.length === 0 && !error && (
+          <p className="text-gray-500">No parking spaces found.</p>
+        )}
+
+        {error && <p className="text-red-500">{error}</p>}
       </div>
-
-      {spots.length === 0 && !error && (
-        <p className="text-gray-500">No parking spaces found.</p>
-      )}
-
-      {error && <p className="text-red-500">{error}</p>}
     </div>
   );
 }
