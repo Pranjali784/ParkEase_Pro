@@ -25,12 +25,15 @@ export default function RadarMap({ latitude, longitude }) {
       container: mapRef.current,
       center: [longitude, latitude],
       zoom: 14,
+      style: "radar-dark", // ✅ DARK MAP (IMPORTANT)
     });
 
-    Radar.ui.marker({
-      coordinates: [longitude, latitude],
-      color: "#000000",
-    }).addTo(mapInstance.current);
+    Radar.ui
+      .marker({
+        coordinates: [longitude, latitude],
+        color: "#ffffff",
+      })
+      .addTo(mapInstance.current);
 
     return () => {
       mapInstance.current?.remove();
