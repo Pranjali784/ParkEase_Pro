@@ -21,17 +21,17 @@ export default function RadarMap({ latitude, longitude }) {
 
     Radar.initialize(key);
 
+    // ✅ NO style property (Radar default only)
     mapInstance.current = Radar.ui.map({
       container: mapRef.current,
       center: [longitude, latitude],
       zoom: 14,
-      style: "radar-dark", // ✅ DARK MAP (IMPORTANT)
     });
 
     Radar.ui
       .marker({
         coordinates: [longitude, latitude],
-        color: "#ffffff",
+        color: "#ffffff", // bright marker for contrast
       })
       .addTo(mapInstance.current);
 
@@ -42,8 +42,13 @@ export default function RadarMap({ latitude, longitude }) {
   }, [latitude, longitude]);
 
   return (
-    <div className="w-full h-[420px] rounded-xl overflow-hidden border bg-gray-900 shadow-lg">
+    <div className="relative w-full h-[420px] rounded-xl overflow-hidden border bg-gray-900 shadow-lg">
+
+      {/* MAP */}
       <div ref={mapRef} className="w-full h-full" />
+
+      {/* DARK OVERLAY (Uber-style look) */}
+      <div className="pointer-events-none absolute inset-0 bg-black/20" />
     </div>
   );
 }
