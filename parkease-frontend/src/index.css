@@ -8,4 +8,14 @@ body {
   color: #111827; /* Dark text */
   font-family: 'Poppins', sans-serif;
 }
+.input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+.input:focus {
+  outline: none;
+  border-color: #000;
+}
 

@@ -4,41 +4,42 @@ export default function Landing() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex-grow flex items-center justify-center">
-      {/* MODIFICATION:
-        The grid layout is changed to 'flex flex-col' for centering.
-        The "Location-based discovery" box has been removed.
-      */}
-      <div className="mx-auto max-w-7xl px-5 py-20 flex flex-col items-center text-center">
+    <section className="flex-grow bg-white">
+      <div className="max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-16 items-center">
 
-        {/* Text Content */}
+        {/* LEFT */}
         <div>
-          <h1 className="text-6xl font-bold text-black mb-6 leading-tight">
+          <h1 className="text-5xl md:text-6xl font-bold leading-tight">
             Find. Book. Park.
           </h1>
-          <p className="text-lg text-gray-600 mb-8 max-w-lg mx-auto">
-            A location-aware parking network connecting space owners and
-            drivers in real time.
+
+          <p className="mt-6 text-gray-600 text-lg">
+            A real-time, location-aware parking platform connecting drivers
+            and space owners seamlessly.
           </p>
-          <div className="flex gap-4 justify-center">
+
+          <div className="mt-10 flex gap-4">
             <button
               onClick={() => navigate("/signin")}
-              className="bg-black text-white px-8 py-3 rounded-full text-lg font-medium hover:bg-gray-800"
+              className="bg-black text-white px-8 py-3 rounded-full text-lg hover:bg-gray-800"
             >
               Get Started
             </button>
+
             <button
               onClick={() => navigate("/services")}
-              className="bg-gray-200 text-black px-8 py-3 rounded-full text-lg font-medium hover:bg-gray-300"
+              className="border border-gray-300 px-8 py-3 rounded-full text-lg hover:bg-gray-100"
             >
-              Try Live Search
+              Live Search
             </button>
           </div>
         </div>
 
-        {/* This is where the other grid item used to be. It's now gone. */}
-
+        {/* RIGHT */}
+        <div className="h-[420px] rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-500">
+          Live Map Preview
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
