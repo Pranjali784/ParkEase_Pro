@@ -2,15 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import Radar from "radar-sdk-js";
 import api from "../api/axios";
 import RadarMap from "../components/RadarMap";
+import { initRadar } from "../utils/radar";
 
 export default function Services() {
   const [spots, setSpots] = useState([]);
   const [location, setLocation] = useState(null);
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
+
   const searchRef = useRef(null);
   const radarReady = useRef(false);
 
+  // ---------- TEXT SEARCH (ENTER / BUTTON) ----------
   const handleSearch = async () => {
     if (!query.trim()) return;
 
@@ -24,12 +27,12 @@ export default function Services() {
     }
   };
 
+  // ---------- RADAR AUTOCOMPLETE (SAFE INIT) ----------
   useEffect(() => {
-    const key = import.meta.env.VITE_RADAR_PUBLISHABLE_KEY;
-    if (!key || !searchRef.current || radarReady.current) return;
+    if (!searchRef.current || radarReady.current) return;
 
     radarReady.current = true;
-    Radar.initialize(key);
+    initRadar(); // ✅ initialize Radar ONCE globally
 
     Radar.ui.autocomplete({
       container: searchRef.current,
@@ -49,7 +52,10 @@ export default function Services() {
         }
       },
     });
+  }, []);
 
+  // ---------- USER CURRENT LOCATION ----------
+  useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) =>
         setLocation({
@@ -83,7 +89,7 @@ export default function Services() {
           </button>
         </div>
 
-        {/* AUTOCOMPLETE */}
+        {/* RADAR AUTOCOMPLETE */}
         <div
           ref={searchRef}
           className="border rounded-lg px-4 py-3 bg-white shadow"
@@ -91,7 +97,10 @@ export default function Services() {
 
         {/* MAP */}
         {location && (
-          <RadarMap latitude={location.lat} longitude={location.lon} />
+          <RadarMap
+            latitude={location.lat}
+            longitude={location.lon}
+          />
         )}
 
         {/* RESULTS */}
