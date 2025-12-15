@@ -10,7 +10,8 @@ export default function RadarMap({ latitude, longitude }) {
     if (
       typeof latitude !== "number" ||
       typeof longitude !== "number" ||
-      !mapRef.current
+      !mapRef.current ||
+      mapInstance.current
     ) {
       return;
     }
@@ -18,27 +19,18 @@ export default function RadarMap({ latitude, longitude }) {
     const key = import.meta.env.VITE_RADAR_PUBLISHABLE_KEY;
     if (!key) return;
 
-    // prevent double init
-    if (mapInstance.current) return;
-
     Radar.initialize(key);
 
-    try {
-      mapInstance.current = Radar.ui.map({
-        container: mapRef.current,
-        center: [longitude, latitude],
-        zoom: 14,
-      });
+    mapInstance.current = Radar.ui.map({
+      container: mapRef.current,
+      center: [longitude, latitude],
+      zoom: 14,
+    });
 
-      Radar.ui
-        .marker({
-          coordinates: [longitude, latitude],
-          text: "You are here",
-        })
-        .addTo(mapInstance.current);
-    } catch (e) {
-      console.error("Radar map error:", e);
-    }
+    Radar.ui.marker({
+      coordinates: [longitude, latitude],
+      color: "#000000",
+    }).addTo(mapInstance.current);
 
     return () => {
       mapInstance.current?.remove();
@@ -47,7 +39,7 @@ export default function RadarMap({ latitude, longitude }) {
   }, [latitude, longitude]);
 
   return (
-    <div className="w-full h-[420px] rounded-xl overflow-hidden border shadow">
+    <div className="w-full h-[420px] rounded-xl overflow-hidden border bg-gray-900 shadow-lg">
       <div ref={mapRef} className="w-full h-full" />
     </div>
   );

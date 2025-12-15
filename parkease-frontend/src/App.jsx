@@ -12,30 +12,20 @@ import Profile from "./routes/Profile";
 export default function App() {
   return (
     <Router>
-      {/* --- MODIFIED: Added h-screen to fill the viewport height --- */}
-      <div className="min-h-screen h-screen flex flex-col bg-gray-50 text-gray-900">
+      <div className="h-screen flex flex-col bg-gray-50">
         <Navbar />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/services" element={<Services />} />
           <Route path="/signin" element={<Signin />} />
           <Route path="/register" element={<Register />} />
-
           <Route
             path="/add-park"
-            element={
-              <ProtectedRoute>
-                <AddPark />
-              </ProtectedRoute>
-            }
+            element={<ProtectedRoute><AddPark /></ProtectedRoute>}
           />
           <Route
             path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
+            element={<ProtectedRoute><Profile /></ProtectedRoute>}
           />
         </Routes>
         <Footer />
