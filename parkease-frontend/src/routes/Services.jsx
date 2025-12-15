@@ -8,11 +8,19 @@ export default function Services() {
   const [location, setLocation] = useState(null);
   const [error, setError] = useState("");
   const searchRef = useRef(null);
+  const radarReady = useRef(false);
 
   useEffect(() => {
     const key = import.meta.env.VITE_RADAR_PUBLISHABLE_KEY;
-    if (!key) return;
+    if (!key) {
+      console.error("Radar key missing");
+      return;
+    }
 
+    // ✅ SAFETY CHECK
+    if (!searchRef.current || radarReady.current) return;
+
+    radarReady.current = true;
     Radar.initialize(key);
 
     Radar.ui.autocomplete({
@@ -32,19 +40,22 @@ export default function Services() {
       },
     });
 
-    navigator.geolocation.getCurrentPosition((pos) => {
-      setLocation({
-        lat: pos.coords.latitude,
-        lon: pos.coords.longitude,
-      });
-    });
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocation({
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+        });
+      },
+      () => setError("Location permission denied")
+    );
   }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
       <h1 className="text-3xl font-bold">Nearby Parking</h1>
 
-      {/* SEARCH */}
+      {/* SEARCH BAR */}
       <div
         ref={searchRef}
         className="border rounded-lg px-4 py-3 bg-white shadow"
@@ -71,7 +82,7 @@ export default function Services() {
         ))}
       </div>
 
-      {spots.length === 0 && (
+      {spots.length === 0 && !error && (
         <p className="text-gray-500">No parking spaces found.</p>
       )}
 
