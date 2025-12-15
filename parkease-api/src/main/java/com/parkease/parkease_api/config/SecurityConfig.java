@@ -55,6 +55,7 @@ public class SecurityConfig {
                             "http://localhost:5173",
                             "http://localhost:5190",
                             "https://parkease-frontend-ten.vercel.app",
+                            "https://parkease-frontend-3yyz8pcsk-pranjali784s-projects.vercel.app",
                             "https://*.onrender.com"
                     ));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
