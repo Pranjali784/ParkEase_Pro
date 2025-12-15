@@ -27,26 +27,41 @@ export default function Signin() {
 
   return (
     <div className="flex-grow flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-xl shadow w-full max-w-md space-y-6">
-        <h2 className="text-2xl font-semibold text-center">Sign in</h2>
+      <div className="bg-white w-full max-w-md p-8 rounded-xl shadow space-y-6">
+        <h2 className="text-2xl font-semibold text-center">
+          Sign in to ParkEase
+        </h2>
 
         <form onSubmit={submit} className="space-y-4">
           <input
-            placeholder="Email"
             className="input"
+            placeholder="Email"
+            type="email"
             onChange={(e) => setEmail(e.target.value)}
+            required
           />
+
           <input
+            className="input"
             type="password"
             placeholder="Password"
-            className="input"
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
+
           <button className="w-full bg-black text-white py-3 rounded-lg">
             Login
           </button>
         </form>
 
+        {/* Divider */}
+        <div className="flex items-center gap-4">
+          <div className="flex-1 h-px bg-gray-200" />
+          <span className="text-sm text-gray-400">OR</span>
+          <div className="flex-1 h-px bg-gray-200" />
+        </div>
+
+        {/* Google Login */}
         <div className="flex justify-center">
           <GoogleLogin onSuccess={googleSuccess} />
         </div>

@@ -6,8 +6,10 @@ export default function RadarMap({ latitude, longitude }) {
   const mapRef = useRef(null);
 
   useEffect(() => {
+    if (!latitude || !longitude || !mapRef.current) return;
+
     const key = import.meta.env.VITE_RADAR_PUBLISHABLE_KEY;
-    if (!key || !mapRef.current) return;
+    if (!key) return;
 
     Radar.initialize(key);
 
@@ -18,16 +20,19 @@ export default function RadarMap({ latitude, longitude }) {
       zoom: 14,
     });
 
-    Radar.ui.marker({
-      coordinates: [longitude, latitude],
-      text: "You are here",
-    }).addTo(map);
+    Radar.ui
+      .marker({
+        coordinates: [longitude, latitude],
+        text: "You are here",
+      })
+      .addTo(map);
+
+    return () => map.remove();
   }, [latitude, longitude]);
 
   return (
-    <div
-      ref={mapRef}
-      className="w-full h-[400px] rounded-xl shadow mb-6"
-    />
+    <div className="w-full h-[420px] rounded-xl overflow-hidden shadow border">
+      <div ref={mapRef} className="w-full h-full" />
+    </div>
   );
 }

@@ -1,68 +1,81 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Radar from "radar-sdk-js";
 import api from "../api/axios";
 import RadarMap from "../components/RadarMap";
 
 export default function Services() {
   const [spots, setSpots] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [location, setLocation] = useState(null);
+  const [error, setError] = useState("");
+  const searchRef = useRef(null);
 
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
-        setLocation({ lat, lon });
+    const key = import.meta.env.VITE_RADAR_PUBLISHABLE_KEY;
+    if (!key) return;
+
+    Radar.initialize(key);
+
+    Radar.ui.autocomplete({
+      container: searchRef.current,
+      placeholder: "Search location...",
+      onSelection: async ({ latitude, longitude }) => {
+        setLocation({ lat: latitude, lon: longitude });
 
         try {
           const res = await api.get("/parking-spaces/search", {
-            params: { lat, lon },
+            params: { lat: latitude, lon: longitude },
           });
           setSpots(res.data.spots || []);
         } catch {
           setError("Failed to load parking spaces");
-        } finally {
-          setLoading(false);
         }
       },
-      () => {
-        setError("Location access denied");
-        setLoading(false);
-      }
-    );
+    });
+
+    navigator.geolocation.getCurrentPosition((pos) => {
+      setLocation({
+        lat: pos.coords.latitude,
+        lon: pos.coords.longitude,
+      });
+    });
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10">
-      <h1 className="text-3xl font-bold mb-6">Nearby Parking Spaces</h1>
+    <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+      <h1 className="text-3xl font-bold">Nearby Parking</h1>
 
-      {loading && <p>Loading parking spaces…</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {/* SEARCH */}
+      <div
+        ref={searchRef}
+        className="border rounded-lg px-4 py-3 bg-white shadow"
+      />
 
+      {/* MAP */}
       {location && (
-        <RadarMap latitude={location.lat} longitude={location.lon} />
+        <RadarMap
+          latitude={location.lat}
+          longitude={location.lon}
+        />
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+      {/* RESULTS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {spots.map((s) => (
           <div
             key={s.id}
-            className="border rounded-lg p-4 bg-white shadow"
+            className="bg-white border rounded-xl p-4 shadow"
           >
             <h3 className="font-semibold">{s.address}</h3>
-            <p className="text-sm text-gray-600">
-              {s.vehicleTypes}
-            </p>
+            <p className="text-sm text-gray-500">{s.vehicleTypes}</p>
           </div>
         ))}
       </div>
 
-      {spots.length === 0 && !loading && (
-        <p className="mt-4 text-gray-500">
-          No parking spaces found nearby.
-        </p>
+      {spots.length === 0 && (
+        <p className="text-gray-500">No parking spaces found.</p>
       )}
+
+      {error && <p className="text-red-500">{error}</p>}
     </div>
   );
 }
