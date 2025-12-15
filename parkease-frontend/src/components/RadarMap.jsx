@@ -4,17 +4,16 @@ import "radar-sdk-js/dist/radar.css";
 
 export default function RadarMap({ latitude, longitude }) {
   const mapRef = useRef(null);
-  const initialized = useRef(false);
 
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
+    const key = import.meta.env.VITE_RADAR_PUBLISHABLE_KEY;
+    if (!key || !mapRef.current) return;
 
-    Radar.initialize(import.meta.env.VITE_RADAR_PUBLISHABLE_KEY);
+    Radar.initialize(key);
 
     const map = Radar.ui.map({
       container: mapRef.current,
-      style: "radar-default-v1",
+      style: "radar-light",
       center: [longitude, latitude],
       zoom: 14,
     });
@@ -28,7 +27,7 @@ export default function RadarMap({ latitude, longitude }) {
   return (
     <div
       ref={mapRef}
-      className="w-full h-[420px] rounded-2xl overflow-hidden shadow"
+      className="w-full h-[400px] rounded-xl shadow mb-6"
     />
   );
 }
