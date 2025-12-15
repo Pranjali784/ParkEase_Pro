@@ -17,7 +17,7 @@ export default function Services() {
       return;
     }
 
-    // ✅ SAFETY CHECK
+    // ✅ Prevent double init & null ref
     if (!searchRef.current || radarReady.current) return;
 
     radarReady.current = true;
@@ -27,6 +27,15 @@ export default function Services() {
       container: searchRef.current,
       placeholder: "Search location...",
       onSelection: async ({ latitude, longitude }) => {
+        // ✅ CRITICAL SAFETY CHECK
+        if (
+          typeof latitude !== "number" ||
+          typeof longitude !== "number"
+        ) {
+          console.warn("Radar selection missing coordinates");
+          return;
+        }
+
         setLocation({ lat: latitude, lon: longitude });
 
         try {
