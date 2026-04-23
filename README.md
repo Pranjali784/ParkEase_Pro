@@ -100,36 +100,70 @@ docker compose down -v
 
 ### 🔧 Installation Without Docker (Manual)
 
-If you prefer to run the services individually on your local system without Docker, follow these steps:
+If you or a friend do not have Docker installed, follow these detailed steps to set up the project locally from scratch.
 
-#### 1. Frontend (`parkease-frontend`)
-Requires **Node.js** and **npm**.
+#### Step 1: Install Required Software
+You must install the following software on your machine:
+1. **Node.js (LTS version)**: Download from [nodejs.org](https://nodejs.org/). This installs both Node.js and `npm` (required for the frontend).
+2. **Java JDK 21**: Download from [Adoptium](https://adoptium.net/) or Oracle (required for the backend).
+3. **Python 3**: Download from [python.org](https://www.python.org/downloads/) (required for the ML service).
+4. **MySQL Community Server**: Download from [mysql.com](https://dev.mysql.com/downloads/mysql/). Make sure to remember the `root` password you set during installation!
 
+#### Step 2: Set Up the Database
+Once MySQL is installed, open the MySQL Command Line Client or MySQL Workbench, log in as `root`, and run:
+```sql
+-- Create the database
+CREATE DATABASE parkease_db;
+
+-- Create the user (Replace 'password' with a secure password)
+CREATE USER 'parkease_user'@'localhost' IDENTIFIED BY 'password';
+
+-- Grant all privileges to the user for this database
+GRANT ALL PRIVILEGES ON parkease_db.* TO 'parkease_user'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+#### Step 3: Configure the Application Environment
+Update the backend to connect to your newly created local database.
+1. In the root of the project, copy the example environment file:
+   * Mac/Linux: `cp .env.example .env`
+   * Windows: `copy .env.example .env`
+2. Open the `.env` file (and/or `parkease-api/src/main/resources/application.properties`) and update the database credentials using the credentials from Step 2:
+   ```properties
+   MYSQL_USER=parkease_user
+   MYSQL_PASSWORD=password
+   ```
+
+#### Step 4: Run the Services
+You will need to open **three separate terminals** to run the frontend, backend, and ML services simultaneously.
+
+**Terminal 1 (Frontend):**
 ```bash
 cd parkease-frontend
 npm install
-# To run locally: npm run dev
+npm run dev
 ```
 
-#### 2. Backend API (`parkease-api`)
-Requires **Java Development Kit (JDK 21)**.
-
+**Terminal 2 (Backend):**
 ```bash
 cd parkease-api
 ./mvnw clean install -DskipTests
-# To run locally: ./mvnw spring-boot:run
+./mvnw spring-boot:run
 ```
+*(On Windows, use `mvnw.cmd` instead of `./mvnw`)*
 
-#### 3. Machine Learning Service (`parkease-ml`)
-Requires **Python 3**.
-
+**Terminal 3 (Machine Learning):**
 ```bash
 cd parkease-ml
 python3 -m venv venv
-source venv/bin/activate
+# On Mac/Linux: source venv/bin/activate
+# On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-# To run locally: python main.py
+python main.py
 ```
+
+#### (Optional) Step 5: Load Test Data
+If you want to load the initial dataset into your local database, you can run the SQL script located at `parkease-api/src/main/resources/data.sql` inside your MySQL client.
 
 <details>
 <summary>💻 Run Locally (Without Docker)</summary>
