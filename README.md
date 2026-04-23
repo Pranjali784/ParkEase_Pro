@@ -98,6 +98,39 @@ Stop + remove database volume (clear all data):
 docker compose down -v
 ```
 
+### 🔧 Installation Without Docker (Manual)
+
+If you prefer to run the services individually on your local system without Docker, follow these steps:
+
+#### 1. Frontend (`parkease-frontend`)
+Requires **Node.js** and **npm**.
+
+```bash
+cd parkease-frontend
+npm install
+# To run locally: npm run dev
+```
+
+#### 2. Backend API (`parkease-api`)
+Requires **Java Development Kit (JDK 21)**.
+
+```bash
+cd parkease-api
+./mvnw clean install -DskipTests
+# To run locally: ./mvnw spring-boot:run
+```
+
+#### 3. Machine Learning Service (`parkease-ml`)
+Requires **Python 3**.
+
+```bash
+cd parkease-ml
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+# To run locally: python main.py
+```
+
 <details>
 <summary>💻 Run Locally (Without Docker)</summary>
 
