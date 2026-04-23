@@ -1,17 +1,13 @@
-import { useEffect, useRef, useState } from "react";
-import Radar from "radar-sdk-js";
+import { useEffect, useState } from "react";
 import api from "../api/axios";
-import RadarMap from "../components/RadarMap";
-import { initRadar } from "../utils/initRadar";
+import OSMMap from "../components/OSMMap";
+import OSMAutocomplete from "../components/OSMAutocomplete";
 
 export default function Services() {
   const [spots, setSpots] = useState([]);
   const [location, setLocation] = useState(null);
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
-
-  const searchRef = useRef(null);
-  const radarReady = useRef(false);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -26,34 +22,18 @@ export default function Services() {
     }
   };
 
-  useEffect(() => {
-    if (!searchRef.current || radarReady.current) return;
+  const handleLocationSelect = ({ latitude, longitude }) => {
+    if (typeof latitude !== "number" || typeof longitude !== "number") return;
+    
+    setLocation({ lat: latitude, lon: longitude });
 
-    radarReady.current = true;
-    initRadar();
-
-    Radar.ui.autocomplete({
-      container: searchRef.current,
-      placeholder: "Tambaram Station, Guduvancheri Station",
-      onSelection: ({ latitude, longitude }) => {
-        if (
-          typeof latitude !== "number" ||
-          typeof longitude !== "number"
-        ) {
-          return;
-        }
-
-        setLocation({ lat: latitude, lon: longitude });
-
-        api
-          .get("/parking-spaces/search", {
-            params: { lat: latitude, lon: longitude },
-          })
-          .then((res) => setSpots(res.data.spots || []))
-          .catch(() => setError("Failed to load parking spaces"));
-      },
-    });
-  }, []);
+    api
+      .get("/parking-spaces/search", {
+        params: { lat: latitude, lon: longitude },
+      })
+      .then((res) => setSpots(res.data.spots || []))
+      .catch(() => setError("Failed to load parking spaces"));
+  };
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -71,32 +51,21 @@ export default function Services() {
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-4">
         <h1 className="text-3xl font-bold">Nearby Parking</h1>
 
-        <div className="flex gap-3">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            placeholder="Tambaram Station, Guduvancheri Station"
-            className="flex-1 px-5 py-3 rounded-lg border"
+        <div className="flex flex-col gap-3 relative z-50">
+          <OSMAutocomplete
+            placeholder="Search a location or landmark..."
+            onSelection={handleLocationSelect}
           />
-          <button
-            onClick={handleSearch}
-            className="px-6 py-3 bg-black text-white rounded-lg"
-          >
-            Enter
-          </button>
         </div>
 
-        <div
-          ref={searchRef}
-          className="border rounded-lg px-4 py-3 bg-white shadow"
-        />
-
         {location && (
-          <RadarMap
-            latitude={location.lat}
-            longitude={location.lon}
-          />
+          <div className="z-0">
+            <OSMMap
+              latitude={location.lat}
+              longitude={location.lon}
+              spots={spots}
+            />
+          </div>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[35vh] overflow-auto">
@@ -104,6 +73,11 @@ export default function Services() {
             <div key={s.id} className="bg-white p-4 rounded-xl shadow">
               <h3 className="font-semibold">{s.address}</h3>
               <p className="text-sm text-gray-500">{s.vehicleTypes}</p>
+              {s.pricePerHour && (
+                <p className="text-sm font-semibold text-green-600 mt-1">
+                  Est. Rate: ${s.pricePerHour}/hr
+                </p>
+              )}
             </div>
           ))}
         </div>

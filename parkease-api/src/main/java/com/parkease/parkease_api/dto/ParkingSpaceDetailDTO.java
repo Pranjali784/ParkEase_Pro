@@ -10,6 +10,7 @@ public class ParkingSpaceDetailDTO {
     private BigDecimal longitude;
     private String vehicleTypes;
     private String modelType; // <-- Field must exist
+    private BigDecimal pricePerHour;
     private int capacity;
     private LocalTime availableFrom;
     private LocalTime availableTo;
@@ -21,7 +22,7 @@ public class ParkingSpaceDetailDTO {
 
     // --- THIS IS THE CONSTRUCTOR THAT MUST MATCH ---
     public ParkingSpaceDetailDTO(Long id, String address, BigDecimal latitude, BigDecimal longitude,
-                                 String vehicleTypes, String modelType, int capacity,
+                                 String vehicleTypes, String modelType, BigDecimal pricePerHour, int capacity,
                                  LocalTime availableFrom, LocalTime availableTo,
                                  String notes, String ownerName, String ownerContact) {
         this.id = id;
@@ -30,6 +31,7 @@ public class ParkingSpaceDetailDTO {
         this.longitude = longitude;
         this.vehicleTypes = vehicleTypes;
         this.modelType = modelType; // <-- Field must be set
+        this.pricePerHour = pricePerHour;
         this.capacity = capacity;
         this.availableFrom = availableFrom;
         this.availableTo = availableTo;
@@ -45,6 +47,7 @@ public class ParkingSpaceDetailDTO {
     public BigDecimal getLongitude() { return longitude; }
     public String getVehicleTypes() { return vehicleTypes; }
     public String getModelType() { return modelType; }
+    public BigDecimal getPricePerHour() { return pricePerHour; }
     public int getCapacity() { return capacity; }
     public LocalTime getAvailableFrom() { return availableFrom; }
     public LocalTime getAvailableTo() { return availableTo; }
@@ -58,6 +61,7 @@ public class ParkingSpaceDetailDTO {
     public void setLongitude(BigDecimal longitude) { this.longitude = longitude; }
     public void setVehicleTypes(String vehicleTypes) { this.vehicleTypes = vehicleTypes; }
     public void setModelType(String modelType) { this.modelType = modelType; }
+    public void setPricePerHour(BigDecimal pricePerHour) { this.pricePerHour = pricePerHour; }
     public void setCapacity(int capacity) { this.capacity = capacity; }
     public void setAvailableFrom(LocalTime availableFrom) { this.availableFrom = availableFrom; }
     public void setAvailableTo(LocalTime availableTo) { this.availableTo = availableTo; }

@@ -16,6 +16,7 @@ public final class  ParkingSpaceMapper {
                 ps.getLongitude(),
                 ps.getVehicleTypes(),
                 ps.getModelType(), // <-- THE FIX
+                ps.getPricePerHour(), // <-- THE NEW FIX
                 ps.getCapacity(),
                 ps.getAvailableFrom(),
                 ps.getAvailableTo()
@@ -35,6 +36,7 @@ public final class  ParkingSpaceMapper {
                 ps.getLongitude(),
                 ps.getVehicleTypes(),
                 ps.getModelType(), // <-- THE FIX
+                ps.getPricePerHour(), // <-- THE NEW FIX
                 ps.getCapacity(),
                 ps.getAvailableFrom(),
                 ps.getAvailableTo(),

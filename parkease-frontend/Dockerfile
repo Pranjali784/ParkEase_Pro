@@ -9,6 +9,16 @@ RUN npm ci
 # Copy the rest of the app's source code
 COPY . .
 
+# Accept build arguments
+ARG VITE_GOOGLE_CLIENT_ID
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+
+ARG VITE_RADAR_PUBLISHABLE_KEY
+ENV VITE_RADAR_PUBLISHABLE_KEY=$VITE_RADAR_PUBLISHABLE_KEY
+
+ARG VITE_API_BASE
+ENV VITE_API_BASE=$VITE_API_BASE
+
 # Build for production
 # This will use your .env.example, so VITE_API_BASE is http://localhost:8080/api
 # We will fix this with Nginx in the next stage.

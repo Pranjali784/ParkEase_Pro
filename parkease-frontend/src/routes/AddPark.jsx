@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Radar from "radar-sdk-js";
+import OSMAutocomplete from "../components/OSMAutocomplete";
 import api from "../api/axios";
 
 export default function AddPark() {
@@ -14,24 +14,12 @@ export default function AddPark() {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
-  const searchRef = useRef(null);
 
-  useEffect(() => {
-    const key = import.meta.env.VITE_RADAR_PUBLISHABLE_KEY;
-    if (!key) return;
-
-    Radar.initialize(key);
-
-    Radar.ui.autocomplete({
-      container: searchRef.current,
-      placeholder: "Search parking location...",
-      onSelection: ({ formattedAddress, latitude, longitude }) => {
-        setAddress(formattedAddress);
-        setLatitude(latitude);
-        setLongitude(longitude);
-      },
-    });
-  }, []);
+  const handleSelection = ({ formattedAddress, latitude, longitude }) => {
+    setAddress(formattedAddress);
+    setLatitude(latitude);
+    setLongitude(longitude);
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -66,9 +54,9 @@ export default function AddPark() {
 
         <form onSubmit={submit} className="space-y-4">
           {/* LOCATION */}
-          <div
-            ref={searchRef}
-            className="border rounded-lg px-4 py-3"
+          <OSMAutocomplete
+            placeholder="Search parking location..."
+            onSelection={handleSelection}
           />
 
           {/* VEHICLE */}

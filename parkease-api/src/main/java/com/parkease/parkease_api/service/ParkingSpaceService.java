@@ -24,6 +24,9 @@ public class ParkingSpaceService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PricingService pricingService;
+
     /* =========================
        REQUIRED BY CONTROLLER
        ========================= */
@@ -68,6 +71,10 @@ public class ParkingSpaceService {
         space.setAvailableTo(dto.getAvailableTo());
         space.setCapacity(1);
         space.setNotes("");
+
+        // Call ML service to get dynamic price
+        BigDecimal suggestedPrice = pricingService.getSuggestedPrice(dto.getLatitude(), dto.getLongitude(), dto.getAvailableFrom());
+        space.setPricePerHour(suggestedPrice);
 
         ParkingSpace saved = parkingSpaceRepository.save(space);
         return ParkingSpaceMapper.toDetail(saved);

@@ -24,7 +24,17 @@ public class ParkingSpace {
 
     @Column(nullable = false) private String address;
 
+    private BigDecimal pricePerHour;
+
     private String modelType;
+
+    public BigDecimal getPricePerHour() {
+        return pricePerHour;
+    }
+
+    public void setPricePerHour(BigDecimal pricePerHour) {
+        this.pricePerHour = pricePerHour;
+    }
 
     public BigDecimal getLatitude() {
         return latitude;

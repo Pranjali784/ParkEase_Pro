@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: mysql:8.0
@@ -33,13 +31,25 @@ services:
       - .env
 
   frontend:
-    build: ./parkease-frontend
+    build:
+      context: ./parkease-frontend
+      args:
+        - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+        - VITE_RADAR_PUBLISHABLE_KEY=${RADAR_PUBLISHABLE_KEY}
+        - VITE_API_BASE=http://localhost:8080/api
     container_name: parkease-frontend
     restart: always
     depends_on:
       - backend
     ports:
       - "5190:80" # Access the app at http://localhost:5190
+
+  ml-service:
+    build: ./parkease-ml
+    container_name: parkease-ml
+    restart: always
+    ports:
+      - "8000:8000"
 
 volumes:
   parkease-db-data:

@@ -73,6 +73,11 @@ export default function Profile() {
             <div>
               <p className="font-medium">{s.address}</p>
               <p className="text-sm text-gray-500">{s.vehicleTypes}</p>
+              {s.pricePerHour && (
+                <p className="text-sm font-semibold text-green-600 mt-1">
+                  Est. Rate: ${s.pricePerHour}/hr
+                </p>
+              )}
             </div>
           </div>
         ))}
